@@ -131,3 +131,8 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+
+# js
+src/*.js
+src/*.map
+

@@ -8,7 +8,7 @@ class Dispatcher {
     public queue: Array<Queue> = []
 
     constructor(elevatorNum: number, QueueNum: number) {
-        let statusHook = (queue) => {
+        let statusHook = (status) => {
 
         }
         for (let i = 0; i < elevatorNum; ++i) {
@@ -16,7 +16,7 @@ class Dispatcher {
         }
 
         for (let i = 1; i <= QueueNum; ++i) {
-            this.queue.push(new Queue(i), statusHook)
+            this.queue.push(new Queue(i, statusHook))
         }
     }
 

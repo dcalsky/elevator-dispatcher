@@ -5,7 +5,11 @@
 class Person {
     public name: string
     public floor: number
-    public destination: number = 1
-    public elevator: Elevator
+    public destination: number
 
+    constructor(name: string, dest: number, floor: number) {
+        this.floor = floor
+        this.destination = dest
+        this.name = name
+    }
 }
