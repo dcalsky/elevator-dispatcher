@@ -1,3 +1,4 @@
+
 Elevator-Dispatcher
 =======
 
@@ -6,15 +7,14 @@ Just a dispatcher for simulating the working status of elevators in reality.
 
 ## Get started
 ```
-npm install
-``
-
+$ npm install
+```
 ## Development
 ```
-npm run start
+$ npm run start
 ```
 
 ## Production
 ```
-webpack
+$ webpack
 ```
