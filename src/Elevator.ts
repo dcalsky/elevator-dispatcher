@@ -131,7 +131,6 @@ export class Elevator {
         this.setFloorElement()
         let timer = setInterval(() => {
             this.direction = this.getDirection()
-            console.log(this.direction)
             let cb = this.cbs[this.floor]
             if (this.tasks[this.floor] && this.tasks[this.floor].indexOf(TaskType.SEND) !== -1) {
                 this.deboard()
