@@ -1,0 +1,122 @@
+#container::after {
+    content: ' ';
+    display: block;
+    clear: both;
+}
+
+
+.elevator {
+    position: relative;
+    float: left;
+    min-width: 530px;
+    height: 350px;
+    border-radius: 5px;
+    background: white;
+    transition: box-shadow .6s;
+    margin: 20px 30px;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,.24);
+}
+
+
+@media screen and (max-width: 1200px) {
+    #wrapper {
+        position: relative;
+        padding: 20px 0;
+    }
+    .elevator {
+        width: 100%;
+        margin: 20px 0;
+        box-shadow: none;
+        border-radius: 0;
+        border-bottom: 1px solid rgba(0,0,0, .12);
+    }
+    #logo img {
+        width: 100%;
+    }
+}
+
+.elevator .close {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 15px;
+    height: 15px;
+    font-size: .8rem;
+    background: #EF5350;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.elevator .status {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px 20px;
+}
+
+.status .floor {
+    font-size: 4rem;
+    color: #FFB300;
+    margin: 0;
+}
+
+.status .text {
+    text-align: center;
+    font-size: .9rem;
+    /* green */
+    color: #4CAF50;
+    margin: 0;
+}
+.status .text.free {
+    color: #4CAF50;
+}
+.status .text.running {
+    color: #E53935;
+}
+
+.passengers, .floors {
+    list-style: none;
+    padding: 0;
+}
+
+.passengers .people {
+    display: inline-block;
+    font-size: 1.6rem;
+}
+
+.elevator .space {
+    position: absolute;
+    left: 3px;
+    bottom: 0;
+    max-width: 250px;
+    height: 150px;
+}
+
+.floors {
+    position: absolute;
+    left: 3px;
+    top: 30px;
+    max-width: 350px;
+}
+
+.floors > li {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 2px;
+    color: #d2d2d2;
+    display: inline-block;
+    border: 5px solid #FFD54F;
+    width: 32px;
+    height: 32px;
+    border-radius: 32px;
+    background: #FFF9B1;
+    cursor: pointer;
+    transition: border .5s;
+}
+
+.floors > li.active {
+    border-color: #E53935;
+}
+

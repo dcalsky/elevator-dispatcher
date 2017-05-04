@@ -135,4 +135,5 @@ Temporary Items
 # js
 src/*.js
 src/*.map
+dist/
 

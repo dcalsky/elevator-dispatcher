@@ -1,6 +1,7 @@
 var path = require('path')
 var webpack = require('webpack')
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+var HtmlWebpackPlugin = require('html-webpack-plugin')
+var CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = {
     entry: [
@@ -18,7 +19,7 @@ module.exports = {
     module: {
         loaders: [
             { test: /\.tsx?$/, loader: 'ts-loader' },
-            {test: /\.html$/, loader: "raw-loader"}
+            { test: /\.html$/, loader: "raw-loader" },
         ]
     },
     plugins: [
@@ -26,10 +27,14 @@ module.exports = {
             template: 'src/index.html',
             filename: 'index.html'
         }),
-        // new webpack.optimize.UglifyJsPlugin({
-        //     compress: {
-        //         warnings: false
-        //     }
-        // })
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false
+            }
+        }),
+        new CopyWebpackPlugin([{
+            from: path.join(__dirname, 'src/static'),
+            to: 'static'
+        }])
     ]
 }

@@ -1,13 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Elevator dispatcher</title>
+    <title>Elevator Dispatcher</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./static/main.css">
+    <link rel="stylesheet" href="./static/elevator.css">
+    <link rel="stylesheet" href="./static/queue.css">
   </head>
   <body>
-    <div id="app">
-
+    <div id="wrapper">
+      <div id="logo">
+        <img src="./static/logo.png" alt="Elevator">
+        <div id="status">
+          <button id="manual" class="manual mode-active">手动挡</button>
+          <button id="intellij" class="urgent">自动档</button>
+        </div>
+        <div class="controller">
+          <input id="current-floor" type="number" placeholder="所在楼层">
+          <input id="dest" type="number" placeholder="目标楼层">
+          <button id="add">添加乘客</button>
+        </div>
+      </div>
+      <ul class="queue">
+        <span>排队列表: </span>
+      </ul>
+      <div id="container">
+      </div>
     </div>
   </body>
 </html>
