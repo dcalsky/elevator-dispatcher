@@ -1,7 +1,7 @@
 /**
  * Created by Dcalsky on 2017/4/20.
  */
-import Queue from "./Queue";
+import Queue, {Status} from "./Queue";
 import Person from './Person'
 import Elevator, {MAX_CARRIED} from './Elevator'
 import {Task, TaskQueue, TaskType, DIRECTION} from './Task'
@@ -16,7 +16,6 @@ export enum TASK_SIGN {
 export default class Dispatcher {
     public elevators: Array<Elevator> = []
     public queue: Array<Queue> = []
-    public totalFloor: number
     private tasks: TaskQueue = new TaskQueue()
 
     constructor(elevatorNum: number, totalFloor: number, parentContainer: HTMLElement) {
@@ -30,14 +29,17 @@ export default class Dispatcher {
             this.queue[i] = new Queue(i, this.statusHook)
         }
     }
+
     public dispatchPassengerToQueue(person: Person) {
         this.queue[person.floor].addPassenger(person)
     }
+
     private addTask (floor: number, direction: DIRECTION) {
         let task = new Task(floor, TaskType.GET, direction, this.arriveFloor.bind(this))
         this.tasks.addTask(task)
         this.emitElevator(task)
     }
+
     private emitElevator(task: Task, sign: TASK_SIGN = TASK_SIGN.ADD) {
         let elevators = this.getFreeElevators()
         if (sign === TASK_SIGN.REMOVE) {
@@ -55,23 +57,22 @@ export default class Dispatcher {
             }
         }
     }
-    private getElevatorByDistance (eles: Elevator[], floor: number): Elevator {
+
+    private getElevatorByDistance (elevators: Elevator[], floor: number): Elevator {
         let distances: number[] = []
-        eles.forEach((e) => {
+        elevators.forEach((e) => {
             distances.push(Math.abs(e.floor - floor))
         })
-        return eles[distances.indexOf(Math.min(...distances))]
+        return elevators[distances.indexOf(Math.min(...distances))]
     }
-    private board(task: Task, e: Elevator) {
+
+    private arriveFloor(task: Task, e: Elevator): void {
+        this.emitElevator(task, TASK_SIGN.REMOVE)
         this.queue[task.floor].board(task.direction, MAX_CARRIED - e.carried, (p: Person[]) => {
             e.addPassengers(p)
         })
     }
-    private arriveFloor(task: Task, e: Elevator) {
-        this.emitElevator(task, TASK_SIGN.REMOVE)
-        this.board(task, e)
-    }
-    public statusHook(status) {
+    public statusHook(status: Status): void {
         status.directions.forEach(d => {
             this.addTask(status.floor, d)
         })

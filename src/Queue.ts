@@ -6,7 +6,7 @@ import Person from './Person'
 import { DIRECTION } from './Task'
 import * as $ from 'jquery'
 
-interface Status {
+export interface Status {
     floor?: number,
     directions: DIRECTION[],
 }
