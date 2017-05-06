@@ -3,7 +3,8 @@
  */
 import Queue from "./Queue";
 import Person from './Person'
-import {Elevator, DIRECTION, TaskType} from './Elevator'
+import Elevator from './Elevator'
+import {Task, TaskQueue, TaskType, DIRECTION} from './Task'
 import {createElevator} from './Element'
 import * as $ from 'jquery'
 
@@ -12,18 +13,11 @@ export enum TASK_SIGN {
     REMOVE = 0
 }
 
-export class Task {
-    public direction: DIRECTION
-    constructor(d: DIRECTION) {
-        this.direction = d
-    }
-}
-
 export default class Dispatcher {
     public elevators: Array<Elevator> = []
     public queue: Array<Queue> = []
     public totalFloor: number
-    private tasks: Array<Task>[] = []
+    private tasks: TaskQueue = new TaskQueue()
 
     constructor(elevatorNum: number, totalFloor: number, parentContainer: HTMLElement) {
         for (let i = 1; i <= elevatorNum; ++i) {
@@ -40,24 +34,23 @@ export default class Dispatcher {
         this.queue[person.floor].addPassenger(person)
     }
     private addTask (floor: number, direction: DIRECTION) {
-        if (!this.tasks[floor]) this.tasks[floor] = []
-        let newTask = new Task(direction)
-        this.tasks[floor].push(newTask)
-        this.emitElevator(floor)
+        let task = new Task(floor, TaskType.GET, direction, this.arriveFloor.bind(this))
+        this.tasks.addTask(task)
+        this.emitElevator(task)
     }
-    private emitElevator(floor: number, sign: TASK_SIGN = TASK_SIGN.ADD) {
-        let cb = this.arriveFloor.bind(this)
+    private emitElevator(task: Task, sign: TASK_SIGN = TASK_SIGN.ADD) {
         let elevators = this.getFreeElevators()
         if (sign === TASK_SIGN.REMOVE) {
+            this.tasks.removeTask(task)
             this.elevators.forEach((elevator) => {
-                elevator.removeTask(floor, TaskType.GET)
+                elevator.removeTask(task)
             })
         } else {
             if (elevators.length > 0) {
-                this.getElevatorByDistance(elevators, floor).addTask(floor, cb, TaskType.GET)
+                this.getElevatorByDistance(elevators, task.floor).addTask(task)
             } else {
                 this.elevators.forEach((elevator) => {
-                    elevator.addTask(floor, cb, TaskType.GET)
+                    elevator.addTask(task)
                 })
             }
         }
@@ -69,26 +62,19 @@ export default class Dispatcher {
         })
         return eles[distances.indexOf(Math.min(...distances))]
     }
-    private board(floor: number, direction: DIRECTION, e: Elevator) {
-        this.queue[floor].board(direction, (p: Person[]) => {
-            e.addPassenger(p)
-            $('.queue').children().slice(1, p.length + 1).remove() // todo: It's not a good design
+    private board(task: Task, e: Elevator) {
+        this.queue[task.floor].board(task.direction, (p: Person[]) => {
+            e.addPassengers(p)
         })
     }
-    private arriveFloor(floor: number, direction: DIRECTION, e: Elevator) {
-        let task = this.tasks[floor],
-            directions = task.map(_ => _.direction)
-        // if (directions.indexOf(direction) !== -1 || e.running === false) {
-        this.emitElevator(floor, TASK_SIGN.REMOVE)
-        this.board(floor, direction, e)
-
-        // }
+    private arriveFloor(task: Task, e: Elevator) {
+        this.emitElevator(task, TASK_SIGN.REMOVE)
+        this.board(task, e)
     }
     public statusHook(status) {
-        if (status.inDemand) {
-            if (status.direction.up === 1) this.addTask(status.floor, DIRECTION.UP)
-            if (status.direction.down === 1) this.addTask(status.floor, DIRECTION.DOWN)
-        }
+        status.directions.forEach(d => {
+            this.addTask(status.floor, d)
+        })
     }
     private getFreeElevators(): Array<Elevator> {
         let elevators = []

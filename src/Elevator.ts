@@ -5,76 +5,67 @@
 import * as $ from 'jquery'
 import Person from './Person'
 import {createPassenger} from './Element'
-
-export enum DIRECTION {
-    UP = 1,
-    DOWN = 0
-}
-
-export enum TaskType {
-    GET = 1,
-    SEND = 2,
-}
+import {Task, TaskType, TaskQueue, DIRECTION} from './Task'
 
 const EACH_FLOOR_SPEND = 500
 const MAX_CARRIED = 20
 
-export class Elevator {
+export default class Elevator {
     public direction: DIRECTION = DIRECTION.UP
     public floor: number = 1
     public carried: number = 0
     public running: boolean = false
     private passengers: Array<Person> = []
-    private tasks: Array<TaskType[]> = []
+    private tasks: TaskQueue = new TaskQueue()
     private el: JQuery
+    private el_passengers: JQuery
     private maxFloor: number
-    private cbs: Array<Function> = []
 
     constructor(el: JQuery, maxFloor: number) {
         this.el = el
+        this.el_passengers = this.el.find('.passengers')
         this.el.children('.floors').click(this.floorClickHandle.bind(this))
         this.maxFloor = maxFloor
         this.setFloorElement()
     }
-    public addPassenger(newPassengers: Array<Person>): void {
+    public addPassengers(newPassengers: Array<Person>): void {
         this.carried += 1
         this.passengers = this.passengers.concat(newPassengers)
         newPassengers.forEach((p: Person) => {
-            let passengers = this.el.find('.passengers')
-            let pElement = createPassenger()
-            passengers.append(pElement)
-            this.addTask(p.destination, null, TaskType.SEND)
-            this.cbs[p.floor] = null
+            this.element_addPassenger()
+            this.addTask(new Task(p.destination, TaskType.SEND, this.direction))
         })
     }
+    private element_addPassenger() {
+        this.el_passengers.append(createPassenger())
+    }
     private floorClickHandle(event) {
-        let floor = $(event.target)
-        let id = parseInt(floor.data('id'))
+        let floor = $(event.target),
+            id = parseInt(floor.data('id')),
+            task = new Task(id, TaskType.SEND, this.direction)
         if (id !== this.floor) {
             floor.addClass('active')
-            this.addTask(floor.data('id'), null, TaskType.SEND)
+            this.addTask(task)
         }
     }
-    private floorLightHandle(floor: number, on: boolean) {
+    private element_floorLightHandle(floor: number, on: boolean) {
         let light = this.el.find('.floors').children().filter(`[data-id="${floor}"]`)
         on ? light.addClass('active') : light.removeClass('active')
     }
 
-    public addTask (floor: number, cb: Function = null, type: TaskType): void {
-        if (!this.tasks[floor]) this.tasks[floor] = []
-        this.tasks[floor].push(type)
-        this.cbs[floor] = cb
-        type === TaskType.SEND && this.floorLightHandle(floor, true)
-        if (!this.running) this.run()
+    public addTask (task: Task): void {
+        this.tasks.addTask(task)
+        task.type === TaskType.SEND && this.element_floorLightHandle(task.floor, true)
+        !this.running && this.run()
     }
-    public removeTask (floor: number, type: TaskType): void {
-        if (!this.tasks[floor]) this.tasks[floor] = []
-        this.tasks[floor] = this.tasks[floor].filter((type) => {
-            return type !== type
-        })
+    public removeTask (task: Task): void {
+        this.tasks.removeTask(task)
     }
     private deboard(): void {
-        let len = 0
+        let len = 0,
+            tasks = this.tasks.getTasksByType(TaskType.SEND, this.floor)
+        tasks.length > 0 && this.removeTask(tasks[0])
+        this.element_floorLightHandle(this.floor, false)
         this.passengers = this.passengers.filter((p) => {
             if (p.destination !== this.floor) {
                 return true
@@ -83,18 +74,7 @@ export class Elevator {
                 return false
             }
         })
-        this.el.find('.passengers').children().slice(0, len).remove()
-        this.floorLightHandle(this.floor, false)
-        this.removeTask(this.floor, TaskType.SEND)
-        this.cbs[this.floor] = null
-    }
-    private noTask () : boolean {
-        for (let i = 1; i < this.tasks.length; ++i) {
-            if (this.tasks[i] && this.tasks[i].length > 0) {
-                return false
-            }
-        }
-        return true
+        this.el_passengers.children().slice(0, len).remove()
     }
     private setFloorElement(): void {
         let status = this.el.children('.status')
@@ -111,42 +91,71 @@ export class Elevator {
     }
     private getDirection(): DIRECTION {
         if (this.direction === DIRECTION.UP) {
-            for (let i = this.floor; i <= this.maxFloor; ++i) {
-                if (this.tasks[i] && this.tasks[i].length > 0) {
+            for (let i = this.floor + 1; i <= this.maxFloor; ++i) {
+                let tasks = this.tasks.getTasksByFloor(i)
+                if (tasks.length > 0 || this.floor === 1) {
                     return DIRECTION.UP
                 }
             }
             return DIRECTION.DOWN
         } else {
-            for (let i = this.floor; i > 0; --i) {
-                if (this.tasks[i]  && this.tasks[i].length > 0) {
+            for (let i = this.floor - 1; i > 0; --i) {
+                let tasks = this.tasks.getTasksByFloor(i)
+                if (tasks.length > 0 || this.floor === this.maxFloor) {
                     return DIRECTION.DOWN
                 }
             }
             return DIRECTION.UP
         }
     }
+    private existInDirection(): boolean {
+        if (this.direction === DIRECTION.UP) {
+            for (let i = this.floor + 1; i <= this.maxFloor; ++i) {
+                let tasks = this.tasks.getTasksByFloor(i)
+                if (tasks.length > 0) {
+                    return true
+                }
+            }
+            return false
+        } else {
+            for (let i = this.floor - 1; i > 0; --i) {
+                let tasks = this.tasks.getTasksByFloor(i)
+                if (tasks.length > 0) {
+                    return true
+                }
+            }
+            return false
+        }
+    }
+    private handleTask() {
+        let tasks = this.tasks.getTasksByFloor(this.floor)
+        tasks.forEach(task => {
+            if (task.type === TaskType.SEND) {
+                this.deboard()
+                this.removeTask(task)
+            } else {
+                // If elevator's direction as same as task's direction, it means this elevator will stop and receive passengers
+                if (this.existInDirection()) {
+                    this.direction === task.direction && task.cb(task, this)
+                } else {
+                    task.cb(task, this)
+                }
+            }
+
+        })
+    }
     private run() {
         this.running = true
         this.setFloorElement()
         let timer = setInterval(() => {
+            this.handleTask()
             this.direction = this.getDirection()
-            let cb = this.cbs[this.floor]
-            if (this.tasks[this.floor] && this.tasks[this.floor].indexOf(TaskType.SEND) !== -1) {
-                this.deboard()
-            }
-            if (cb) {
-                cb(this.floor, this.direction, this)
-                this.direction = this.getDirection()
-            }
-            if (this.noTask()) {
+            if (this.tasks.noTask()) {
                 clearInterval(timer)
                 this.running = false
-                this.setFloorElement()
             } else {
                 this.direction === DIRECTION.UP ? this.floor ++ : this.floor --
             }
-
             this.setFloorElement()
         }, EACH_FLOOR_SPEND)
     }

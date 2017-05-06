@@ -2,18 +2,13 @@
  * Created by Dcalsky on 2017/4/20.
  */
 
-import { DIRECTION } from './Elevator'
 import Person from './Person'
-
-interface QueueDirection {
-    up: number,
-    down: number
-}
+import { DIRECTION } from './Task'
+import * as $ from 'jquery'
 
 interface Status {
     floor?: number,
-    direction: QueueDirection,
-    inDemand: boolean
+    directions: DIRECTION[],
 }
 
 
@@ -26,13 +21,6 @@ export default class Queue {
     constructor(f: number, statusHook: Function) {
         this.floor = f
         this.statusHook = statusHook
-        this.status = {
-            direction: {
-                up: 0,
-                down: 0
-            },
-            inDemand: false
-        }
     }
 
     public addPassenger(person: Person) {
@@ -40,33 +28,33 @@ export default class Queue {
         this.changeStatus()
     }
 
-    public board(elevatorDirection: DIRECTION, cb: Function) {
-        let passengers = []
-        // for (let i = 0; i < this.passengers.length; ++i) {
-        //     let p = this.passengers[i]
-        //     //let dest = p.destination - this.floor < 0 ? DIRECTION.DOWN : DIRECTION.UP // 负数向下，正数向上
-        //     //if (elevatorDirection === dest) {
-        //         passengers.push(p)
-        //         this.passengers.splice(i, 1)
-        //     //}
-        // }
-        cb(this.passengers)
-        this.passengers = []
+    public board(direction: DIRECTION, cb: Function) {
+        let passengers: Array<Person> = []
+        this.passengers = this.passengers.filter((passenger) => {
+            let d = passenger.destination - this.floor > 0 ? DIRECTION.UP : DIRECTION.DOWN
+            if (d === direction) {
+                passengers.push(passenger)
+                return false
+            }
+            return true
+        })
+        $('.queue').children().slice(1, passengers.length + 1).remove()
+        cb(passengers)
     }
 
     private changeStatus() {
-        let up = 0, down = 0
+        let up = 0, down = 0, directions: DIRECTION[] = []
         this.passengers.forEach((passenger) => {
             let dest = passenger.destination - this.floor // 负数向下，正数向上
             up = up | (dest > 0 ? 1 : 0)
             down = down | (dest < 0 ? 1 : 0)
         })
+        up === 1 && directions.push(DIRECTION.UP)
+        down === 1 && directions.push(DIRECTION.DOWN)
         this.status = {
             floor: this.floor,
-            inDemand: this.passengers.length > 0,
-            direction: { up, down }
+            directions
         }
         this.statusHook(this.status)
     }
-
 }
