@@ -11,7 +11,6 @@ interface Status {
     directions: DIRECTION[],
 }
 
-
 export default class Queue {
     public floor: number
     public status: Status
@@ -28,11 +27,15 @@ export default class Queue {
         this.changeStatus()
     }
 
-    public board(direction: DIRECTION, cb: Function) {
-        let passengers: Array<Person> = []
+    public board(direction: DIRECTION, carried: number, cb: Function) {
+        let passengers: Array<Person> = [],
+            len = 0
         this.passengers = this.passengers.filter((passenger) => {
-            let d = passenger.destination - this.floor > 0 ? DIRECTION.UP : DIRECTION.DOWN
-            if (d === direction) {
+            if (len >= carried) return true
+
+            let dest = passenger.destination - this.floor > 0 ? DIRECTION.UP : DIRECTION.DOWN
+            if (dest === direction) {
+                ++len
                 passengers.push(passenger)
                 return false
             }
@@ -40,12 +43,13 @@ export default class Queue {
         })
         $('.queue').children().slice(1, passengers.length + 1).remove()
         cb(passengers)
+        this.changeStatus()
     }
 
     private changeStatus() {
         let up = 0, down = 0, directions: DIRECTION[] = []
         this.passengers.forEach((passenger) => {
-            let dest = passenger.destination - this.floor // 负数向下，正数向上
+            let dest = passenger.destination - this.floor
             up = up | (dest > 0 ? 1 : 0)
             down = down | (dest < 0 ? 1 : 0)
         })

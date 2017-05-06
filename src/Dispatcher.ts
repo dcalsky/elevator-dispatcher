@@ -3,7 +3,7 @@
  */
 import Queue from "./Queue";
 import Person from './Person'
-import Elevator from './Elevator'
+import Elevator, {MAX_CARRIED} from './Elevator'
 import {Task, TaskQueue, TaskType, DIRECTION} from './Task'
 import {createElevator} from './Element'
 import * as $ from 'jquery'
@@ -63,7 +63,7 @@ export default class Dispatcher {
         return eles[distances.indexOf(Math.min(...distances))]
     }
     private board(task: Task, e: Elevator) {
-        this.queue[task.floor].board(task.direction, (p: Person[]) => {
+        this.queue[task.floor].board(task.direction, MAX_CARRIED - e.carried, (p: Person[]) => {
             e.addPassengers(p)
         })
     }

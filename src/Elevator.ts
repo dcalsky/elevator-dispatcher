@@ -8,7 +8,7 @@ import {createPassenger} from './Element'
 import {Task, TaskType, TaskQueue, DIRECTION} from './Task'
 
 const EACH_FLOOR_SPEND = 500
-const MAX_CARRIED = 20
+export const MAX_CARRIED = 20
 
 export default class Elevator {
     public direction: DIRECTION = DIRECTION.UP
@@ -28,17 +28,20 @@ export default class Elevator {
         this.maxFloor = maxFloor
         this.setFloorElement()
     }
+
     public addPassengers(newPassengers: Array<Person>): void {
-        this.carried += 1
+        this.carried += newPassengers.length
         this.passengers = this.passengers.concat(newPassengers)
         newPassengers.forEach((p: Person) => {
             this.element_addPassenger()
             this.addTask(new Task(p.destination, TaskType.SEND, this.direction))
         })
     }
+
     private element_addPassenger() {
         this.el_passengers.append(createPassenger())
     }
+
     private floorClickHandle(event) {
         let floor = $(event.target),
             id = parseInt(floor.data('id')),
@@ -48,6 +51,7 @@ export default class Elevator {
             this.addTask(task)
         }
     }
+
     private element_floorLightHandle(floor: number, on: boolean) {
         let light = this.el.find('.floors').children().filter(`[data-id="${floor}"]`)
         on ? light.addClass('active') : light.removeClass('active')
@@ -58,9 +62,11 @@ export default class Elevator {
         task.type === TaskType.SEND && this.element_floorLightHandle(task.floor, true)
         !this.running && this.run()
     }
+
     public removeTask (task: Task): void {
         this.tasks.removeTask(task)
     }
+
     private deboard(): void {
         let len = 0,
             tasks = this.tasks.getTasksByType(TaskType.SEND, this.floor)
@@ -74,8 +80,10 @@ export default class Elevator {
                 return false
             }
         })
+        this.carried -= len
         this.el_passengers.children().slice(0, len).remove()
     }
+
     private setFloorElement(): void {
         let status = this.el.children('.status')
         status.children('.floor').text(`${this.floor}F`)
@@ -89,25 +97,12 @@ export default class Elevator {
             status.children('.text').addClass('free')
         }
     }
-    private getDirection(): DIRECTION {
-        if (this.direction === DIRECTION.UP) {
-            for (let i = this.floor + 1; i <= this.maxFloor; ++i) {
-                let tasks = this.tasks.getTasksByFloor(i)
-                if (tasks.length > 0 || this.floor === 1) {
-                    return DIRECTION.UP
-                }
-            }
-            return DIRECTION.DOWN
-        } else {
-            for (let i = this.floor - 1; i > 0; --i) {
-                let tasks = this.tasks.getTasksByFloor(i)
-                if (tasks.length > 0 || this.floor === this.maxFloor) {
-                    return DIRECTION.DOWN
-                }
-            }
-            return DIRECTION.UP
-        }
+
+    public setDirection(): void {
+        const reverseDirection = this.direction === DIRECTION.UP ? DIRECTION.DOWN : DIRECTION.UP
+        this.direction = this.existInDirection() ? this.direction : reverseDirection
     }
+
     private existInDirection(): boolean {
         if (this.direction === DIRECTION.UP) {
             for (let i = this.floor + 1; i <= this.maxFloor; ++i) {
@@ -127,6 +122,7 @@ export default class Elevator {
             return false
         }
     }
+
     private handleTask() {
         let tasks = this.tasks.getTasksByFloor(this.floor)
         tasks.forEach(task => {
@@ -134,6 +130,8 @@ export default class Elevator {
                 this.deboard()
                 this.removeTask(task)
             } else {
+                // If the number of passengers is out of the max carried, ignore
+                if (this.carried >= MAX_CARRIED) return
                 // If elevator's direction as same as task's direction, it means this elevator will stop and receive passengers
                 if (this.existInDirection()) {
                     this.direction === task.direction && task.cb(task, this)
@@ -141,15 +139,15 @@ export default class Elevator {
                     task.cb(task, this)
                 }
             }
-
         })
     }
+
     private run() {
         this.running = true
         this.setFloorElement()
         let timer = setInterval(() => {
             this.handleTask()
-            this.direction = this.getDirection()
+            this.setDirection()
             if (this.tasks.noTask()) {
                 clearInterval(timer)
                 this.running = false
