@@ -43,7 +43,7 @@ export default class Elevator {
     }
 
     private floorClickHandle(event) {
-        let floor = $(event.target),
+        const floor = $(event.target),
             id = parseInt(floor.data('id')),
             task = new Task(id, TaskType.SEND, this.direction)
         if (id !== this.floor) {

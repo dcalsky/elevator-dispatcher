@@ -5,7 +5,7 @@ import * as $ from 'jquery'
 
 const container = document.getElementById('container')
 const totalFloor = 20
-const totalElevator = 1
+const totalElevator = 5
 const passengerCreateTime = 300
 const intellij = document.getElementById('intellij')
 const manual = document.getElementById('manual')

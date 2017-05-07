@@ -35,7 +35,7 @@ export default class Dispatcher {
     }
 
     private addTask (floor: number, direction: DIRECTION) {
-        let task = new Task(floor, TaskType.GET, direction, this.arriveFloor.bind(this))
+        const task = new Task(floor, TaskType.GET, direction, this.arriveFloor.bind(this))
         this.tasks.addTask(task)
         this.emitElevator(task)
     }
