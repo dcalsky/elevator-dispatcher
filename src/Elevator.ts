@@ -7,6 +7,10 @@ import Person from './Person'
 import {createPassenger} from './Element'
 import {Task, TaskType, TaskQueue, DIRECTION} from './Task'
 
+export interface ArrivedCallback {
+    (task: Task, e: Elevator): void
+}
+
 const EACH_FLOOR_SPEND = 500
 export const MAX_CARRIED = 20
 

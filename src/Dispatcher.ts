@@ -3,7 +3,7 @@
  */
 import Queue, {Status} from "./Queue";
 import Person from './Person'
-import Elevator, {MAX_CARRIED} from './Elevator'
+import Elevator, {MAX_CARRIED, ArrivedCallback} from './Elevator'
 import {Task, TaskQueue, TaskType, DIRECTION} from './Task'
 import {createElevator} from './Element'
 import * as $ from 'jquery'
@@ -35,7 +35,7 @@ export default class Dispatcher {
     }
 
     private addTask (floor: number, direction: DIRECTION) {
-        const task = new Task(floor, TaskType.GET, direction, this.arriveFloor.bind(this))
+        const task = new Task(floor, TaskType.GET, direction, this.arriveFloor)
         this.tasks.addTask(task)
         this.emitElevator(task)
     }
@@ -66,10 +66,10 @@ export default class Dispatcher {
         return elevators[distances.indexOf(Math.min(...distances))]
     }
 
-    private arriveFloor(task: Task, e: Elevator): void {
+    private arriveFloor:ArrivedCallback = (task, elevator) => {
         this.emitElevator(task, TASK_SIGN.REMOVE)
-        this.queue[task.floor].board(task.direction, MAX_CARRIED - e.carried, (p: Person[]) => {
-            e.addPassengers(p)
+        this.queue[task.floor].board(task.direction, MAX_CARRIED - elevator.carried, (p: Array<Person>) => {
+            elevator.addPassengers(p)
         })
     }
     public statusHook(status: Status): void {

@@ -1,6 +1,8 @@
 /**
  * Created by Dcalsky on 2017/5/6.
  */
+import {ArrivedCallback} from './Elevator'
+
 export enum DIRECTION {
     UP = 1,
     DOWN = 0
@@ -14,9 +16,9 @@ export enum TaskType {
 export class Task {
     public floor: number
     public type: TaskType
-    public cb: Function
+    public cb: ArrivedCallback
     public direction: DIRECTION
-    constructor(floor: number, type: TaskType, direction: DIRECTION, cb?: Function) {
+    constructor(floor: number, type: TaskType, direction: DIRECTION, cb?: ArrivedCallback) {
         this.floor = floor
         this.type = type
         this.direction = direction
