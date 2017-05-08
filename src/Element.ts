@@ -28,7 +28,7 @@ export interface FloorClick {
 }
 
 export function createPassenger(): JQuery {
-    return $('<li></li>').addClass('iconfont icon-people')
+    return $('<li></li>').addClass('iconfont icon-people people')
 }
 
 export function removeQueue(n: number) {
@@ -43,6 +43,7 @@ export class Element {
         this.type = t
         el && (this.el = el)
         this.parentContainer = parentContainer
+        this.addClass(t)
     }
     protected addClass(classes: string) {
         this.el.addClass(classes)
@@ -61,14 +62,14 @@ export class ElevatorElement extends Element {
         this.el.html(ElevatorTemplate)
         this.floors = this.el.find('.floors')
         this.status = this.el.find('.status')
-        this.passengers = this.el.find('passengers')
+        this.passengers = this.el.find('.passengers')
 
-        this.floors.click(this.floorClickHandle)
+        this.floors.click(this.floorClickHandle.bind(this))
         $(this.parentContainer).append(this.el)
     }
 
     public lightOn(floor: number, on_off: boolean) {
-        const light = this.el.children().filter(`[data-id="${floor}"]`)
+        const light = this.floors.children().filter(`[data-id="${floor}"]`)
         on_off ? light.addClass('active') : light.removeClass('active')
     }
 
@@ -79,7 +80,9 @@ export class ElevatorElement extends Element {
     }
 
     public addPassenger() {
-        this.el.append(createPassenger())
+        console.log('add')
+        console.log(this.passengers)
+        this.passengers.append(createPassenger())
     }
 
     public updateStatue(floor: number, running: boolean) {

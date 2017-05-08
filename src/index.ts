@@ -30,7 +30,6 @@ function addPassenger(start, dest) {
 }
 
 function addPsRandom() {
-    if (autoLock) return
     const currentFloor = randomFloor(1, totalFloor)
     const destFloor = randomFloor(1, totalFloor, [currentFloor])
     addPassenger(currentFloor, destFloor)
@@ -41,6 +40,7 @@ let dispatcher = new Dispatcher(totalElevator, totalFloor, container)
 // Initialize passengers system
 let intellijInterval
 intellij.addEventListener('click', () => {
+    if (autoLock) return
     autoLock = true
     addPsRandom()
     intellijInterval = setInterval(addPsRandom, passengerCreateTime)
@@ -50,11 +50,11 @@ intellij.addEventListener('click', () => {
 })
 
 manual.addEventListener('click', () => {
-    autoLock = false
     clearInterval(intellijInterval)
     controller.show()
     intellij.classList.remove('mode-active')
     manual.classList.add('mode-active')
+    autoLock = false
 })
 
 $('#add').click(() => {
