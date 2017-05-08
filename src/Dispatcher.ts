@@ -5,8 +5,6 @@ import Queue, {Status} from "./Queue";
 import Person from './Person'
 import Elevator, {MAX_CARRIED, ArrivedCallback} from './Elevator'
 import {Task, TaskQueue, TaskType, DIRECTION} from './Task'
-import {createElevator} from './Element'
-import * as $ from 'jquery'
 
 export enum TASK_SIGN {
     ADD = 1,
@@ -20,13 +18,10 @@ export default class Dispatcher {
 
     constructor(elevatorNum: number, totalFloor: number, parentContainer: HTMLElement) {
         for (let i = 1; i <= elevatorNum; ++i) {
-            let el = createElevator()
-            $(parentContainer).append(el)
-            this.elevators.push(new Elevator(el, totalFloor))
+            this.elevators.push(new Elevator(totalFloor, parentContainer))
         }
         for (let i = 1; i <= totalFloor; ++i) {
-            this.statusHook = this.statusHook.bind(this)
-            this.queue[i] = new Queue(i, this.statusHook)
+            this.queue[i] = new Queue(i, this.statusHook.bind(this))
         }
     }
 

@@ -2,9 +2,8 @@
  * Created by Dcalsky on 2017/4/20.
  */
 
-import * as $ from 'jquery'
 import Person from './Person'
-import {createPassenger} from './Element'
+import {ElevatorElement, FloorClick} from './Element'
 import {Task, TaskType, TaskQueue, DIRECTION} from './Task'
 
 export interface ArrivedCallback {
@@ -21,49 +20,33 @@ export default class Elevator {
     public running: boolean = false
     private passengers: Array<Person> = []
     private tasks: TaskQueue = new TaskQueue()
-    private el: JQuery
-    private el_passengers: JQuery
+    private el: ElevatorElement
     private maxFloor: number
 
-    constructor(el: JQuery, maxFloor: number) {
-        this.el = el
-        this.el_passengers = this.el.find('.passengers')
-        this.el.children('.floors').click(this.floorClickHandle.bind(this))
+    constructor(maxFloor: number, parentContainer: HTMLElement) {
+        this.el = new ElevatorElement(this.floorClickHandle, parentContainer)
         this.maxFloor = maxFloor
-        this.setFloorElement()
+        this.updateStatue()
     }
-
+    private floorClickHandle: FloorClick = (floor: number) => {
+        const task = new Task(floor, TaskType.SEND, this.direction)
+        if (floor !== this.floor) {
+            this.el.lightOn(floor, true)
+            this.addTask(task)
+        }
+    }
     public addPassengers(newPassengers: Array<Person>): void {
         this.carried += newPassengers.length
         this.passengers = this.passengers.concat(newPassengers)
         newPassengers.forEach((p: Person) => {
-            this.element_addPassenger()
+            this.el.addPassenger()
             this.addTask(new Task(p.destination, TaskType.SEND, this.direction))
         })
     }
 
-    private element_addPassenger() {
-        this.el_passengers.append(createPassenger())
-    }
-
-    private floorClickHandle(event) {
-        const floor = $(event.target),
-            id = parseInt(floor.data('id')),
-            task = new Task(id, TaskType.SEND, this.direction)
-        if (id !== this.floor) {
-            floor.addClass('active')
-            this.addTask(task)
-        }
-    }
-
-    private element_floorLightHandle(floor: number, on: boolean) {
-        let light = this.el.find('.floors').children().filter(`[data-id="${floor}"]`)
-        on ? light.addClass('active') : light.removeClass('active')
-    }
-
     public addTask (task: Task): void {
         this.tasks.addTask(task)
-        task.type === TaskType.SEND && this.element_floorLightHandle(task.floor, true)
+        task.type === TaskType.SEND && this.el.lightOn(task.floor, true)
         !this.running && this.run()
     }
 
@@ -75,7 +58,7 @@ export default class Elevator {
         let len = 0,
             tasks = this.tasks.getTasksByType(TaskType.SEND, this.floor)
         tasks.length > 0 && this.removeTask(tasks[0])
-        this.element_floorLightHandle(this.floor, false)
+        this.el.lightOn(this.floor, false)
         this.passengers = this.passengers.filter((p) => {
             if (p.destination !== this.floor) {
                 return true
@@ -85,21 +68,11 @@ export default class Elevator {
             }
         })
         this.carried -= len
-        this.el_passengers.children().slice(0, len).remove()
+        this.el.removePassengers(len)
     }
 
-    private setFloorElement(): void {
-        let status = this.el.children('.status')
-        status.children('.floor').text(`${this.floor}F`)
-        if (this.running) {
-            status.children('.text').text('Running')
-            status.children('.text').removeClass('free')
-            status.children('.text').addClass('running')
-        } else {
-            status.children('.text').text('Free')
-            status.children('.text').removeClass('running')
-            status.children('.text').addClass('free')
-        }
+    private updateStatue(): void {
+        this.el.updateStatue(this.floor, this.running)
     }
 
     public setDirection(): void {
@@ -148,7 +121,7 @@ export default class Elevator {
 
     private run() {
         this.running = true
-        this.setFloorElement()
+        this.updateStatue()
         let timer = setInterval(() => {
             this.handleTask()
             this.setDirection()
@@ -158,7 +131,7 @@ export default class Elevator {
             } else {
                 this.direction === DIRECTION.UP ? this.floor ++ : this.floor --
             }
-            this.setFloorElement()
+            this.updateStatue()
         }, EACH_FLOOR_SPEND)
     }
 }

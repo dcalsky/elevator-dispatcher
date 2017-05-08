@@ -4,7 +4,7 @@
 
 import Person from './Person'
 import { DIRECTION } from './Task'
-import * as $ from 'jquery'
+import {removeQueue} from './Element'
 
 export interface Status {
     floor?: number,
@@ -41,7 +41,7 @@ export default class Queue {
             }
             return true
         })
-        $('.queue').children().slice(1, passengers.length + 1).remove()
+        removeQueue(passengers.length + 1)
         cb(passengers)
         this.changeStatus()
     }

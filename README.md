@@ -1,8 +1,6 @@
 
 Elevator-Dispatcher
 =======
-
-## Intro
 Just a dispatcher for simulating the working status of elevators in reality.
 
 ## Get started
@@ -16,5 +14,5 @@ $ npm run start
 
 ## Production
 ```
-$ webpack
+$ npm run build
 ```

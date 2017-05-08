@@ -11,9 +11,10 @@ const intellij = document.getElementById('intellij')
 const manual = document.getElementById('manual')
 const controller = $('.controller')
 const queue = $('.queue')
+let autoLock = false
 
 function randomFloor (start: number, dest: number, except?: Array<number>): number {
-    let floor = Math.floor(Math.random() * (dest  - start) + start) + 1
+    const floor = Math.floor(Math.random() * (dest  - start) + start) + 1
     if (except && except.indexOf(floor) !== -1) {
         return randomFloor(start, dest, except)
     }
@@ -21,16 +22,17 @@ function randomFloor (start: number, dest: number, except?: Array<number>): numb
 }
 
 function addPassenger(start, dest) {
-    let p = createPassenger(),
-        person = new Person('name', start, dest)
+    const p = createPassenger()
+    const person = new Person('name', start, dest)
     console.log(person)
     dispatcher.dispatchPassengerToQueue(person)
     queue.append(p)
 }
 
 function addPsRandom() {
-    let currentFloor = randomFloor(1, totalFloor),
-        destFloor = randomFloor(1, totalFloor, [currentFloor])
+    if (autoLock) return
+    const currentFloor = randomFloor(1, totalFloor)
+    const destFloor = randomFloor(1, totalFloor, [currentFloor])
     addPassenger(currentFloor, destFloor)
 }
 
@@ -39,6 +41,7 @@ let dispatcher = new Dispatcher(totalElevator, totalFloor, container)
 // Initialize passengers system
 let intellijInterval
 intellij.addEventListener('click', () => {
+    autoLock = true
     addPsRandom()
     intellijInterval = setInterval(addPsRandom, passengerCreateTime)
     intellij.classList.add('mode-active')
@@ -47,6 +50,7 @@ intellij.addEventListener('click', () => {
 })
 
 manual.addEventListener('click', () => {
+    autoLock = false
     clearInterval(intellijInterval)
     controller.show()
     intellij.classList.remove('mode-active')

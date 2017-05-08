@@ -4,39 +4,17 @@
 
 import * as $ from 'jquery'
 
-const Elevator_Space = 50
-const Floor_Height = 40
-const Elevator_Class = 'elevator'
-const Queue_Class = 'queue'
-const Building_Class = 'building'
-
-let elevatorTemplate = `
+const ElevatorClass = 'elevator'
+const QueueClass = 'queue'
+const PersonClass = 'people'
+const ElevatorTemplate = `
           <div class="close"></div>
           <div class="status">
             <h2 class="floor"></h2>
             <p class="text"></p>
           </div>
           <ul class="floors">
-            <li data-id="1">1</li>
-            <li data-id="2">2</li>
-            <li data-id="3">3</li>
-            <li data-id="4">4</li>
-            <li data-id="5">5</li>
-            <li data-id="6">6</li>
-            <li data-id="7">7</li>
-            <li data-id="8">8</li>
-            <li data-id="9">9</li>
-            <li data-id="10">10</li>
-            <li data-id="11">11</li>
-            <li data-id="12">12</li>
-            <li data-id="13">13</li>
-            <li data-id="14">14</li>
-            <li data-id="15">15</li>
-            <li data-id="16">16</li>
-            <li data-id="17">17</li>
-            <li data-id="18">18</li>
-            <li data-id="19">19</li>
-            <li data-id="20">20</li>
+            <li data-id="1">1</li><li data-id="2">2</li><li data-id="3">3</li><li data-id="4">4</li><li data-id="5">5</li><li data-id="6">6</li><li data-id="7">7</li><li data-id="8">8</li><li data-id="9">9</li><li data-id="10">10</li><li data-id="11">11</li><li data-id="12">12</li><li data-id="13">13</li><li data-id="14">14</li><li data-id="15">15</li><li data-id="16">16</li><li data-id="17">17</li><li data-id="18">18</li><li data-id="19">19</li><li data-id="20">20</li>
           </ul>
           <div class="space">
             <h3>Passengers</h3>
@@ -45,21 +23,81 @@ let elevatorTemplate = `
           </div>
 `
 
-const peopleTemplate = `
-              <li class="iconfont icon-people people"></li>
-`
-
-export function createElevator() {
-    let el = $('<div></div>')
-    el.addClass(Elevator_Class)
-    el.html(elevatorTemplate)
-    return el
+export interface FloorClick {
+    (floor: number): void
 }
 
-export function createPassenger() {
-    let el = $('<li></li>')
-    el.addClass('iconfont')
-    el.addClass('icon-people')
-    el.addClass('people')
-    return el
+export function createPassenger(): JQuery {
+    return $('<li></li>').addClass('iconfont icon-people')
 }
+
+export function removeQueue(n: number) {
+    $('.queue').children().slice(1, n).remove()
+}
+
+export class Element {
+    protected el: JQuery = $('<div></div>')
+    protected type: string
+    protected parentContainer: HTMLElement
+    constructor(t: string, parentContainer: HTMLElement, el?: JQuery) {
+        this.type = t
+        el && (this.el = el)
+        this.parentContainer = parentContainer
+    }
+    protected addClass(classes: string) {
+        this.el.addClass(classes)
+    }
+}
+
+export class ElevatorElement extends Element {
+    private floors: JQuery
+    private status: JQuery
+    private passengers: JQuery
+    private floorClickCallback: FloorClick
+
+    constructor(fc: FloorClick, parentContainer: HTMLElement) {
+        super(ElevatorClass, parentContainer)
+        this.floorClickCallback = fc
+        this.el.html(ElevatorTemplate)
+        this.floors = this.el.find('.floors')
+        this.status = this.el.find('.status')
+        this.passengers = this.el.find('passengers')
+
+        this.floors.click(this.floorClickHandle)
+        $(this.parentContainer).append(this.el)
+    }
+
+    public lightOn(floor: number, on_off: boolean) {
+        const light = this.el.children().filter(`[data-id="${floor}"]`)
+        on_off ? light.addClass('active') : light.removeClass('active')
+    }
+
+    private floorClickHandle(event) {
+        const floor = $(event.target)
+        const id = parseInt(floor.data('id'))
+        this.floorClickCallback(id)
+    }
+
+    public addPassenger() {
+        this.el.append(createPassenger())
+    }
+
+    public updateStatue(floor: number, running: boolean) {
+        this.status.children('.floor').text(`${floor}F`)
+        const text = this.status.children('.text')
+        if (running) {
+            text.text('Running')
+            text.removeClass('free')
+            text.addClass('running')
+        } else {
+            text.text('Free')
+            text.removeClass('running')
+            text.addClass('free')
+        }
+    }
+
+    public removePassengers(n: number) {
+        this.passengers.children().slice(0, n).remove()
+    }
+}
+
