@@ -5,7 +5,6 @@
 import * as $ from 'jquery'
 
 const ElevatorClass = 'elevator'
-const QueueClass = 'queue'
 const PersonClass = 'people'
 const ElevatorTemplate = `
           <div class="close"></div>
@@ -86,8 +85,8 @@ export class ElevatorElement extends Element {
     }
 
     public updateStatue(floor: number, running: boolean) {
-        this.status.children('.floor').text(`${floor}F`)
         const text = this.status.children('.text')
+        this.status.children('.floor').text(`${floor}F`)
         if (running) {
             text.text('Running')
             text.removeClass('free')
