@@ -73,14 +73,11 @@ export class ElevatorElement extends Element {
     }
 
     private floorClickHandle(event) {
-        const floor = $(event.target)
-        const id = parseInt(floor.data('id'))
+        const id = parseInt($(event.target).data('id'))
         this.floorClickCallback(id)
     }
 
     public addPassenger() {
-        console.log('add')
-        console.log(this.passengers)
         this.passengers.append(createPassenger())
     }
 
@@ -88,13 +85,9 @@ export class ElevatorElement extends Element {
         const text = this.status.children('.text')
         this.status.children('.floor').text(`${floor}F`)
         if (running) {
-            text.text('Running')
-            text.removeClass('free')
-            text.addClass('running')
+            text.text('Running').removeClass('free').addClass('running')
         } else {
-            text.text('Free')
-            text.removeClass('running')
-            text.addClass('free')
+            text.text('Free').removeClass('running').addClass('free')
         }
     }
 
@@ -102,4 +95,3 @@ export class ElevatorElement extends Element {
         this.passengers.children().slice(0, n).remove()
     }
 }
-

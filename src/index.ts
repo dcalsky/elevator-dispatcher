@@ -36,7 +36,7 @@ function addPsRandom() {
 }
 
 // Initialize elevator dispatcher
-let dispatcher = new Dispatcher(totalElevator, totalFloor, container)
+const dispatcher = new Dispatcher(totalElevator, totalFloor, container)
 // Initialize passengers system
 let intellijInterval
 intellij.addEventListener('click', () => {

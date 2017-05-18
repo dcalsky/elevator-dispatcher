@@ -28,6 +28,7 @@ export default class Elevator {
         this.maxFloor = maxFloor
         this.updateStatue()
     }
+
     private floorClickHandle: FloorClick = (floor: number) => {
         const task = new Task(floor, TaskType.SEND, this.direction)
         if (floor !== this.floor) {
@@ -35,6 +36,7 @@ export default class Elevator {
             this.addTask(task)
         }
     }
+
     public addPassengers(newPassengers: Array<Person>): void {
         this.carried += newPassengers.length
         this.passengers = this.passengers.concat(newPassengers)
