@@ -26,7 +26,7 @@ export default class Elevator {
     constructor(maxFloor: number, parentContainer: HTMLElement) {
         this.el = new ElevatorElement(this.floorClickHandle, parentContainer)
         this.maxFloor = maxFloor
-        this.updateStatue()
+        this.updateStatus()
     }
 
     private floorClickHandle: FloorClick = (floor: number) => {
@@ -73,8 +73,8 @@ export default class Elevator {
         this.el.removePassengers(len)
     }
 
-    private updateStatue(): void {
-        this.el.updateStatue(this.floor, this.running)
+    private updateStatus(): void {
+        this.el.updateStatus(this.floor, this.running)
     }
 
     public setDirection(): void {
@@ -109,10 +109,13 @@ export default class Elevator {
                 this.deboard()
                 this.removeTask(task)
             } else {
+                // The condition of receiving passengers
                 // If the number of passengers is out of the max carried, ignore
                 if (this.carried >= MAX_CARRIED) return
                 // If elevator's direction as same as task's direction, it means this elevator will stop and receive passengers
                 if (this.existInDirection()) {
+                    // Whether exists task in current direction
+                    // If current direction is as same as the task direction, trigger the callback of this task to receive some passengers
                     this.direction === task.direction && task.cb(task, this)
                 } else {
                     task.cb(task, this)
@@ -122,8 +125,9 @@ export default class Elevator {
     }
 
     private run() {
+        // Flow: handle tasks of this floor -> determine current direction -> judge whether exists tasks -> update status
         this.running = true
-        this.updateStatue()
+        this.updateStatus()
         let timer = setInterval(() => {
             this.handleTask()
             this.setDirection()
@@ -133,7 +137,7 @@ export default class Elevator {
             } else {
                 this.direction === DIRECTION.UP ? this.floor ++ : this.floor --
             }
-            this.updateStatue()
+            this.updateStatus()
         }, EACH_FLOOR_SPEND)
     }
 }

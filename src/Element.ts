@@ -81,7 +81,7 @@ export class ElevatorElement extends Element {
         this.passengers.append(createPassenger())
     }
 
-    public updateStatue(floor: number, running: boolean) {
+    public updateStatus(floor: number, running: boolean) {
         const text = this.status.children('.text')
         this.status.children('.floor').text(`${floor}F`)
         if (running) {
